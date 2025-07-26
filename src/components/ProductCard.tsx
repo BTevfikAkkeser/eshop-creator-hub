@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   id: number;
@@ -20,12 +22,47 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { toast } = useToast();
+  
   const discount = product.original_price && product.original_price > product.price 
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;
 
   const whatsappMessage = `Merhaba! ${product.name} ürününü satın almak istiyorum.`;
   const whatsappUrl = `https://wa.me/905551234567?text=${encodeURIComponent(whatsappMessage)}`;
+
+  const handleBuyNow = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          productId: product.id,
+          productName: product.name,
+          price: product.price
+        }
+      });
+
+      if (error) {
+        console.error('Checkout error:', error);
+        toast({
+          title: "Hata",
+          description: "Ödeme sayfası açılırken bir hata oluştu.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Hata",
+        description: "Ödeme işlemi başlatılırken bir hata oluştu.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="group overflow-hidden bg-gradient-card border-border/50 hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
@@ -110,14 +147,24 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </div>
         
-        {/* Action button */}
-        <Button 
-          className="w-full bg-gradient-primary hover:opacity-90 text-white transition-all duration-200 hover:shadow-glow"
-          disabled={!product.in_stock}
-          onClick={() => window.open(whatsappUrl, '_blank')}
-        >
-          {product.in_stock ? 'WhatsApp İle Sipariş' : 'Stokta Yok'}
-        </Button>
+        {/* Action buttons */}
+        <div className="space-y-2">
+          <Button 
+            className="w-full bg-gradient-primary hover:opacity-90 text-white transition-all duration-200 hover:shadow-glow"
+            disabled={!product.in_stock}
+            onClick={handleBuyNow}
+          >
+            {product.in_stock ? 'Kredi Kartı ile Satın Al' : 'Stokta Yok'}
+          </Button>
+          <Button 
+            variant="outline"
+            className="w-full"
+            disabled={!product.in_stock}
+            onClick={() => window.open(whatsappUrl, '_blank')}
+          >
+            WhatsApp İle Sipariş
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
