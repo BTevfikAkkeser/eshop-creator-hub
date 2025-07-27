@@ -1,10 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/CartContext";
 import { Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import img1 from "../assets/Urun1/1.jpg";
+import img2 from "../assets/Urun1/2.jpg";
+import img3 from "../assets/Urun1/3.jpg";
+import img4 from "../assets/Urun1/4.jpg";
+import img5 from "../assets/Urun1/5.jpg";
 
 interface Product {
   id: number;
@@ -16,6 +21,7 @@ interface Product {
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [images, setImages] = useState<string[]>([]);
@@ -40,8 +46,9 @@ const ProductDetail = () => {
           description: "Bu kupa, yüksek kaliteli seramikten üretilmiştir ve özel tasarımıyla dikkat çeker. Sıcak ve soğuk içecekler için uygundur.",
           in_stock: true,
         });
-        setImages([img1]);
-        setSelectedImage(img1);
+        const urun1Images = [img1, img2, img3, img4, img5];
+        setImages(urun1Images);
+        setSelectedImage(urun1Images[0]);
         setLoading(false);
         return;
       }
@@ -74,6 +81,13 @@ const ProductDetail = () => {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-3xl">
+      <button
+        className="mb-6 flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="w-5 h-5" />
+        <span>Geri</span>
+      </button>
       <div className="flex flex-col md:flex-row gap-8">
         {/* Görsel Galerisi */}
         <div className="flex-1 flex flex-col items-center">

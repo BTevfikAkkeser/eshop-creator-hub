@@ -11,11 +11,6 @@ const Index = () => {
       <Header />
       <Hero />
       <ProductGrid />
-      <div className="mt-8">
-        <Link to="/urun1" className="text-blue-600 underline">
-          Ürün 1 Detay Sayfası
-        </Link>
-      </div>
       <Footer />
     </div>
   );
