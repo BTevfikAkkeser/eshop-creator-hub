@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
-import heroImage from "@/assets/hero-image.jpg";
+// import heroImage from "@/assets/hero-image.jpg";
+
+const HERO_IMAGE_URL = "https://bvbsjfhuclqjzconvqml.supabase.co/storage/v1/object/public/product-images//hero-image.jpg";
 
 const Hero = () => {
   const scrollToProducts = () => {
@@ -15,9 +17,9 @@ const Hero = () => {
       {/* Hero image */}
       <div className="absolute inset-0 opacity-20">
         <img 
-          src={heroImage} 
+          src={HERO_IMAGE_URL} 
           alt="Minik Hediyem - El yapımı hediyeler"
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover rounded-xl shadow-2xl border-2 border-white/30"
         />
       </div>
       

@@ -21,12 +21,16 @@ const Footer = () => {
               Kişiye özel tasarımlar ve kaliteli hizmet.
             </p>
             <div className="flex space-x-2">
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-                <Instagram className="w-4 h-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
-                <Facebook className="w-4 h-4" />
-              </Button>
+              <a href="https://instagram.com/ornekhesap" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
+                  <Instagram className="w-4 h-4" />
+                </Button>
+              </a>
+              <a href="https://facebook.com/ornekhesap" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
+                  <Facebook className="w-4 h-4" />
+                </Button>
+              </a>
             </div>
           </div>
 

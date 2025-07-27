@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Heart, ShoppingBag, Phone } from "lucide-react";
+import { Menu, X, Heart, ShoppingBag, Phone, User, ShoppingCart } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "./CartContext";
+import Cart from "./Cart";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [authModal, setAuthModal] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { cart } = useCart();
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const navigate = useNavigate();
 
   const whatsappUrl = "https://wa.me/905551234567?text=Merhaba! Minik Hediyem'den özel bir tasarım talebi yapmak istiyorum.";
 
@@ -40,6 +50,19 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
+            {/* Sepet ikonu */}
+            <button
+              className="relative p-2 rounded-full bg-primary text-white hover:bg-primary/80 transition"
+              onClick={() => navigate("/cart")}
+              aria-label="Sepeti Aç"
+            >
+              <ShoppingCart className="w-6 h-6" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                  {cartCount}
+                </span>
+              )}
+            </button>
             {/* Desktop actions */}
             <div className="hidden md:flex items-center space-x-2">
               <Button variant="ghost" size="sm" className="text-foreground hover:text-primary">
@@ -56,6 +79,16 @@ const Header = () => {
                 <Phone className="w-4 h-4 mr-2" />
                 İletişim
               </Button>
+              {/* Kullanıcı hesabı/giriş */}
+              {user ? (
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary" onClick={signOut}>
+                  <User className="w-4 h-4 mr-1" /> Çıkış Yap
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" className="text-foreground hover:text-primary" onClick={() => setAuthModal(true)}>
+                  <User className="w-4 h-4 mr-1" /> Giriş Yap
+                </Button>
+              )}
             </div>
 
             {/* Mobile menu button */}
@@ -68,7 +101,7 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation ve diğer modallar */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-16 left-0 right-0 bg-white border-b border-border shadow-soft">
             <nav className="flex flex-col space-y-4 p-4">
@@ -123,8 +156,35 @@ const Header = () => {
                   <Phone className="w-4 h-4 mr-2" />
                   İletişim
                 </Button>
+                {/* Mobil kullanıcı hesabı/giriş */}
+                {user ? (
+                  <Button variant="ghost" size="sm" className="text-foreground hover:text-primary flex-1" onClick={signOut}>
+                    <User className="w-4 h-4 mr-1" /> Çıkış Yap
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="sm" className="text-foreground hover:text-primary flex-1" onClick={() => { setAuthModal(true); setIsMenuOpen(false); }}>
+                    <User className="w-4 h-4 mr-1" /> Giriş Yap
+                  </Button>
+                )}
               </div>
             </nav>
+          </div>
+        )}
+        {/* Sepet Modalı */}
+        {cartOpen && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setCartOpen(false)}>
+            <div onClick={e => e.stopPropagation()} className="bg-white rounded shadow-lg">
+              <Cart onClose={() => setCartOpen(false)} />
+            </div>
+          </div>
+        )}
+        {/* Giriş/Kayıt Modalı */}
+        {authModal && (
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center" onClick={() => setAuthModal(false)}>
+            <div onClick={e => e.stopPropagation()} className="bg-white rounded shadow-lg p-6 min-w-[320px]">
+              {/* Giriş/Kayıt formu buraya eklenecek */}
+              {/* <AuthForm onClose={() => setAuthModal(false)} /> */}
+            </div>
           </div>
         )}
       </div>

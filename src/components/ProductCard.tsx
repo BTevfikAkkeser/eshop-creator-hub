@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Star, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "./CartContext";
+import { useNavigate } from "react-router-dom";
 
 interface Product {
   id: number;
@@ -23,15 +25,33 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { toast } = useToast();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
   
   const discount = product.original_price && product.original_price > product.price 
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;
 
   const whatsappMessage = `Merhaba! ${product.name} ürününü satın almak istiyorum.`;
-  const whatsappUrl = `https://wa.me/905551234567?text=${encodeURIComponent(whatsappMessage)}`;
+  const whatsappUrl = `https://wa.me/905427956344?text=${encodeURIComponent(whatsappMessage)}`;
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: String(product.id),
+      name: product.name,
+      price: product.price,
+      image: product.image_path,
+      quantity: 1,
+    });
+    toast({
+      title: "Sepete Eklendi",
+      description: `${product.name} sepete eklendi!`,
+    });
+  };
 
   const handleBuyNow = async () => {
+    handleAddToCart();
+    // Sepete ekledikten sonra ödeme işlemini başlat
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: {
@@ -40,7 +60,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           price: product.price
         }
       });
-
       if (error) {
         console.error('Checkout error:', error);
         toast({
@@ -50,7 +69,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
         });
         return;
       }
-
       if (data?.url) {
         window.open(data.url, '_blank');
       }
@@ -65,7 +83,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <Card className="group overflow-hidden bg-gradient-card border-border/50 hover:shadow-medium transition-all duration-300 hover:-translate-y-1">
+    <Card
+      className="group overflow-hidden bg-gradient-card border-border/50 hover:shadow-medium transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      onClick={e => {
+        // Butonlara tıklanırsa yönlendirme olmasın
+        if ((e.target as HTMLElement).closest('button')) return;
+        navigate(`/product/${product.id}`);
+      }}
+    >
       <div className="relative aspect-square overflow-hidden">
         {product.image_path ? (
           <img 
@@ -155,6 +180,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
             onClick={handleBuyNow}
           >
             {product.in_stock ? 'Kredi Kartı ile Satın Al' : 'Stokta Yok'}
+          </Button>
+          <Button 
+            variant="outline"
+            className="w-full"
+            disabled={!product.in_stock}
+            onClick={handleAddToCart}
+          >
+            Sepete Ekle
           </Button>
           <Button 
             variant="outline"
