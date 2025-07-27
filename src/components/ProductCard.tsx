@@ -13,6 +13,7 @@ interface Product {
   price: number;
   original_price?: number;
   image_path?: string;
+  description?: string;
   rating?: number;
   reviews?: number;
   featured?: boolean;
@@ -22,6 +23,8 @@ interface Product {
 interface ProductCardProps {
   product: Product;
 }
+
+const placeholderImg = "/placeholder.svg";
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { toast } = useToast();
@@ -57,7 +60,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
         body: {
           productId: product.id,
           productName: product.name,
-          price: product.price
+          price: product.price,
+          image: product.image_path, // Görsel bağlantısını ekle
+          description: product.description || `${product.name} - El yapımı amigurumi ürün`
         }
       });
       if (error) {
@@ -84,25 +89,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <Card
-      className="group overflow-hidden bg-gradient-card border-border/50 hover:shadow-medium transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      className="group overflow-hidden bg-gradient-card border-border/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 hover:border-primary/60 rounded-2xl cursor-pointer animate-fade-in-up"
       onClick={e => {
         // Butonlara tıklanırsa yönlendirme olmasın
         if ((e.target as HTMLElement).closest('button')) return;
         navigate(`/product/${product.id}`);
       }}
     >
-      <div className="relative aspect-square overflow-hidden">
-        {product.image_path ? (
-          <img 
-            src={product.image_path} 
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-            <span className="text-4xl">🎁</span>
-          </div>
-        )}
+      <div className="relative aspect-square overflow-hidden bg-gray-100">
+        <img
+          src={product.image_path || placeholderImg}
+          alt={product.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+        />
         
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">

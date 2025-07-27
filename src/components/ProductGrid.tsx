@@ -88,13 +88,13 @@ const ProductGrid = () => {
             placeholder="Ürün ara..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="border px-3 py-2 rounded w-full md:w-1/3"
+            className="border px-3 py-2 rounded w-full md:w-1/3 focus:ring-2 focus:ring-primary transition-all duration-300 shadow-sm"
           />
           <div className="flex gap-2 flex-wrap">
             {categories.map(cat => (
               <button
                 key={cat}
-                className={`px-3 py-1 rounded-full border ${category === cat ? 'bg-primary text-white' : 'bg-white text-primary border-primary'} transition`}
+                className={`px-3 py-1 rounded-full border ${category === cat ? 'bg-primary text-white' : 'bg-white text-primary border-primary'} transition-all duration-300 hover:scale-105 shadow-sm`}
                 onClick={() => setCategory(cat)}
               >
                 {cat}
@@ -103,15 +103,15 @@ const ProductGrid = () => {
           </div>
         </div>
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground tracking-tight animate-fade-in">
             Özel Ürünlerimiz
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto animate-fade-in delay-100">
             El yapımı amigurumi bebekler ve parti süsleriyle sevdiklerinizi mutlu edin
           </p>
         </div>
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <div className="text-6xl mb-4">🎁</div>
             <h3 className="text-xl font-semibold mb-2 text-foreground">
               Ürün bulunamadı!
@@ -122,8 +122,10 @@ const ProductGrid = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {filteredProducts.map((product, idx) => (
+              <div key={product.id} className="animate-fade-in-up" style={{ animationDelay: `${idx * 60}ms` }}>
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         )}

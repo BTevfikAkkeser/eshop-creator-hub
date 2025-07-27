@@ -2,7 +2,7 @@ import { useCart } from "./CartContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Trash, Plus, Minus, ShoppingCart, BadgeCheck, Package } from "lucide-react";
+import { Trash, Plus, Minus, ShoppingCart, BadgeCheck, Package, X, CreditCard } from "lucide-react";
 import type { CartItem } from "./CartContext";
 import { useNavigate } from "react-router-dom";
 
@@ -60,77 +60,141 @@ const Cart = ({ onClose }: { onClose?: () => void }) => {
 
   if (cart.length === 0) {
     return (
-      <div className="mb-4 p-8 border rounded-xl bg-white flex flex-col items-center min-w-[340px] shadow-lg">
+      <div className="mb-4 p-8 border-2 border-dashed border-gray-200 rounded-3xl bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center min-w-[380px] shadow-xl animate-fade-in">
         {/* Modern SVG illüstrasyon */}
-        <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-4 animate-bounce">
-          <rect x="20" y="40" width="80" height="50" rx="12" fill="#f3f4f6" />
-          <rect x="30" y="50" width="60" height="30" rx="8" fill="#e0e7ef" />
-          <rect x="45" y="65" width="30" height="8" rx="4" fill="#cbd5e1" />
-          <circle cx="40" cy="95" r="7" fill="#a5b4fc" />
-          <circle cx="80" cy="95" r="7" fill="#a5b4fc" />
-        </svg>
-        <div className="text-xl font-bold text-gray-700 mb-1">Sepetiniz boş</div>
-        <div className="text-sm text-gray-500 mb-4">Alışverişe başlamak için ürün ekleyin.</div>
-        <Button onClick={() => navigate("/")} variant="default" className="rounded-full px-6 py-2 text-base shadow-md">Alışverişe Başla</Button>
+        <div className="relative mb-6">
+          <div className="w-24 h-24 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-full flex items-center justify-center animate-pulse">
+            <ShoppingCart className="w-12 h-12 text-primary" />
+          </div>
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-bounce">
+            <span className="text-white text-xs font-bold">0</span>
+          </div>
+        </div>
+        <div className="text-2xl font-bold text-gray-700 mb-2">Sepetiniz boş</div>
+        <div className="text-gray-500 mb-6 text-center">Alışverişe başlamak için ürün ekleyin.</div>
+        <Button 
+          onClick={() => navigate("/")} 
+          className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90 text-white shadow-xl transition-all duration-300 hover:scale-105 rounded-2xl px-8 py-3 text-base font-semibold"
+        >
+          Alışverişe Başla
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="relative mb-4 p-0 border rounded-xl bg-white min-w-[360px] shadow-lg overflow-hidden">
-      <div className="flex justify-between items-center px-6 pt-6 pb-2">
-        <h4 className="font-bold text-2xl tracking-tight">Sepetim</h4>
+    <div className="relative mb-4 p-0 border-2 border-gray-100 rounded-3xl bg-white/95 backdrop-blur-sm min-w-[400px] shadow-2xl overflow-hidden animate-fade-in-up">
+      <div className="flex justify-between items-center px-6 pt-6 pb-4 bg-gradient-to-r from-primary/5 to-blue-500/5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-primary to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+            <ShoppingCart className="w-6 h-6 text-white" />
+          </div>
+          <h4 className="font-bold text-2xl tracking-tight text-gray-800">Sepetim</h4>
+          <span className="bg-primary text-white text-xs px-2 py-1 rounded-full font-bold">
+            {cart.length}
+          </span>
+        </div>
         {onClose && (
-          <button onClick={onClose} className="text-2xl font-bold text-gray-400 hover:text-gray-700 transition">×</button>
+          <button 
+            onClick={onClose} 
+            className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-300 hover:scale-110 flex items-center justify-center"
+          >
+            <X className="w-5 h-5 text-gray-600" />
+          </button>
         )}
       </div>
-      <ul className="divide-y divide-gray-200 px-2 max-h-[340px] overflow-y-auto">
-        {cart.map((item) => (
-          <li key={item.id} className="flex items-center gap-4 py-4 group hover:bg-gray-50 rounded-lg transition">
+      
+      <ul className="divide-y divide-gray-100 px-4 max-h-[400px] overflow-y-auto">
+        {cart.map((item, idx) => (
+          <li 
+            key={item.id} 
+            className="flex items-center gap-4 py-4 group hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 rounded-2xl transition-all duration-300 animate-fade-in-up"
+            style={{ animationDelay: `${idx * 100}ms` }}
+          >
             {/* Ürün görseli */}
-            <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden border">
+            <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center overflow-hidden border-2 border-white shadow-lg group-hover:shadow-xl transition-all duration-300">
               {item.image ? (
-                <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
+                <img src={item.image} alt={item.name} className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300" />
               ) : (
-                <Package className="w-10 h-10 text-gray-300" />
+                <Package className="w-10 h-10 text-gray-400" />
               )}
             </div>
+            
             {/* Ürün bilgileri */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-gray-800 truncate text-base">{item.name}</span>
-                {/* Kategori badge örnek */}
-                <span className="bg-indigo-100 text-indigo-600 text-xs px-2 py-0.5 rounded-full font-medium">Kategori</span>
-                {/* Stok durumu örnek */}
-                <span className="flex items-center gap-1 text-green-500 text-xs"><BadgeCheck className="w-3 h-3" />Stokta</span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-semibold text-gray-800 truncate text-base group-hover:text-primary transition-colors">{item.name}</span>
+                <span className="bg-gradient-to-r from-primary/20 to-blue-500/20 text-primary text-xs px-3 py-1 rounded-full font-medium">Kategori</span>
+                <span className="flex items-center gap-1 text-green-600 text-xs font-medium">
+                  <BadgeCheck className="w-3 h-3" />Stokta
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-indigo-600">₺{item.price}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-lg font-bold text-primary">₺{item.price}</span>
                 <span className="text-xs text-gray-400">x</span>
-                <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" onClick={() => handleDecrease(item)} disabled={item.quantity === 1} className="h-7 w-7 p-0 border-gray-300"><Minus className="w-4 h-4" /></Button>
-                  <span className="px-2 text-base font-semibold text-gray-700">{item.quantity}</span>
-                  <Button variant="outline" size="icon" onClick={() => handleIncrease(item)} className="h-7 w-7 p-0 border-gray-300"><Plus className="w-4 h-4" /></Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleDecrease(item)} 
+                    disabled={item.quantity === 1} 
+                    className="h-8 w-8 p-0 border-gray-300 hover:border-primary hover:bg-primary/10 transition-all duration-300 rounded-full"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <span className="px-3 py-1 bg-gray-100 rounded-full text-base font-semibold text-gray-700 min-w-[2rem] text-center">{item.quantity}</span>
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={() => handleIncrease(item)} 
+                    className="h-8 w-8 p-0 border-gray-300 hover:border-primary hover:bg-primary/10 transition-all duration-300 rounded-full"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
             </div>
+            
             {/* Toplam ve sil */}
-            <div className="flex flex-col items-end gap-2 min-w-[60px]">
-              <span className="text-base font-bold text-gray-700">₺{item.price * item.quantity}</span>
-              <Button variant="ghost" size="icon" onClick={() => handleRemove(item)} className="text-destructive opacity-70 hover:opacity-100 hover:bg-red-50 transition"><Trash className="w-5 h-5" /></Button>
+            <div className="flex flex-col items-end gap-3 min-w-[80px]">
+              <span className="text-lg font-bold text-primary">₺{item.price * item.quantity}</span>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => handleRemove(item)} 
+                className="text-red-500 opacity-70 hover:opacity-100 hover:bg-red-50 transition-all duration-300 rounded-full w-8 h-8"
+              >
+                <Trash className="w-4 h-4" />
+              </Button>
             </div>
           </li>
         ))}
       </ul>
+      
       {/* Sabit alt panel */}
-      <div className="sticky bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/90 to-white/60 px-6 py-4 border-t flex flex-col gap-2 shadow-[0_-2px_16px_-8px_rgba(0,0,0,0.06)]">
-        <div className="flex justify-between items-center mb-1">
+      <div className="sticky bottom-0 left-0 w-full bg-gradient-to-t from-white via-white/95 to-white/80 px-6 py-6 border-t border-gray-100 flex flex-col gap-4 shadow-[0_-4px_20px_-8px_rgba(0,0,0,0.1)]">
+        <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-gray-700">Toplam:</span>
-          <span className="text-2xl font-bold text-indigo-700">₺{total}</span>
+          <span className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">₺{total}</span>
         </div>
-        <div className="flex gap-2">
-          <Button variant="destructive" onClick={clearCart} size="sm" className="rounded-full">Sepeti Temizle</Button>
-          <Button variant="default" onClick={handleCartCheckout} size="sm" className="rounded-full flex-1 text-base font-semibold shadow-md">Satın Al</Button>
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            onClick={clearCart} 
+            size="sm" 
+            className="rounded-2xl border-2 border-red-200 text-red-600 hover:bg-red-50 transition-all duration-300 flex-1"
+          >
+            Sepeti Temizle
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={handleCartCheckout} 
+            size="sm" 
+            className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90 text-white shadow-xl transition-all duration-300 hover:scale-105 rounded-2xl flex-1 text-base font-semibold flex items-center gap-2"
+          >
+            <CreditCard className="w-4 h-4" />
+            Satın Al
+          </Button>
         </div>
       </div>
     </div>

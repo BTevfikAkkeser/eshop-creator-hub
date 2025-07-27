@@ -7,11 +7,13 @@ import ProductUrun1 from "./ProductUrun1";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <Hero />
-      <ProductGrid />
-      <Footer />
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-pink-50 animate-fade-in">
+      <div className="container mx-auto px-2 md:px-4">
+        <Header />
+        <Hero />
+        <ProductGrid />
+        <Footer />
+      </div>
     </div>
   );
 };

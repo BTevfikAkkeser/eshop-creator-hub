@@ -23,12 +23,14 @@ serve(async (req) => {
       apiVersion: "2023-10-16",
     });
 
-    // Stripe line_items formatına dönüştür
+    // Stripe line_items formatına dönüştür ve görselleri ekle
     const line_items = items.map((item) => ({
       price_data: {
         currency: "try",
         product_data: {
           name: item.name,
+          images: item.image ? [item.image] : [], // Ürün görselini ekle
+          description: item.description || `${item.name} - El yapımı amigurumi ürün`,
         },
         unit_amount: Math.round(item.price * 100),
       },
@@ -48,6 +50,14 @@ serve(async (req) => {
         items: JSON.stringify(items),
         total: total ? total.toString() : "",
       },
+      // Görsel ayarları
+      payment_method_types: ["card"],
+      billing_address_collection: "required",
+      shipping_address_collection: {
+        allowed_countries: ["TR"],
+      },
+      // Türkçe dil desteği
+      locale: "tr",
     });
 
     return new Response(

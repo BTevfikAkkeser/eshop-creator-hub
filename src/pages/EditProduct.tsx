@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadImageToSupabase } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image, Trash2, Plus, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Upload, Image, Trash2, Save, Loader2, ArrowLeft } from "lucide-react";
 
 const categories = [
   "Amigurumi Bebekler",
@@ -15,17 +15,81 @@ const categories = [
   "Dekorasyon"
 ];
 
-const AddProduct = () => {
-  const { toast } = useToast();
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  category_id: number;
+  description: string;
+  image_path: string;
+  in_stock: boolean;
+  featured: boolean;
+  original_price?: number;
+  rating?: number;
+  reviews?: number;
+  slug?: string;
+  created_at?: string;
+}
+
+const EditProduct = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [product, setProduct] = useState<Product | null>(null);
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState(categories[0]);
   const [description, setDescription] = useState("");
-  const [images, setImages] = useState<File[]>([]);
+  const [inStock, setInStock] = useState(true);
+  const [featured, setFeatured] = useState(false);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", Number(id))
+          .single();
+
+        if (error) throw error;
+
+        setProduct(data);
+        setName(data.name);
+        setPrice(data.price.toString());
+        setCategory(categories[data.category_id - 1] || categories[0]); // category_id'yi string'e çevir
+        setDescription(data.description || "");
+        setInStock(data.in_stock);
+        setFeatured(data.featured);
+        setImageUrls([data.image_path]);
+
+        // Ürün görsellerini getir
+        const { data: images, error: imageError } = await supabase
+          .from("product_images")
+          .select("image_path")
+          .eq("product_id", data.id)
+          .order("order", { ascending: true });
+
+        if (!imageError && images) {
+          setImageUrls([data.image_path, ...images.map(img => img.image_path)]);
+        }
+      } catch (error) {
+        toast({
+          title: "Hata",
+          description: "Ürün yüklenirken bir hata oluştu.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) fetchProduct();
+  }, [id, toast]);
 
   const handleImageUpload = async (files: FileList) => {
     setUploading(true);
@@ -69,31 +133,34 @@ const AddProduct = () => {
       return;
     }
     
-    setLoading(true);
+    setSaving(true);
     try {
-      // Ürünü Supabase veritabanına ekle
-      const { data: productData, error: productError } = await supabase
+      // Ürünü güncelle
+      const { error: productError } = await supabase
         .from("products")
-        .insert([
-          {
-            name,
-            price: parseFloat(price),
-            category,
-            description,
-            image_path: imageUrls[0], // Ana görsel
-            in_stock: true,
-            featured: false,
-          },
-        ])
-        .select()
-        .single();
+        .update({
+          name,
+          price: parseFloat(price),
+          category,
+          description,
+          image_path: imageUrls[0],
+          in_stock: inStock,
+          featured: featured,
+        })
+        .eq("id", Number(id));
 
       if (productError) throw productError;
 
-      // Ürün görsellerini ekle
+      // Mevcut görselleri sil
+      await supabase
+        .from("product_images")
+        .delete()
+        .eq("product_id", Number(id));
+
+      // Yeni görselleri ekle
       if (imageUrls.length > 1) {
-        const imageData = imageUrls.map((url, index) => ({
-          product_id: productData.id,
+        const imageData = imageUrls.slice(1).map((url, index) => ({
+          product_id: Number(id),
           image_path: url,
           order: index,
         }));
@@ -107,17 +174,9 @@ const AddProduct = () => {
 
       toast({ 
         title: "Başarılı", 
-        description: "Ürün başarıyla eklendi!" 
+        description: "Ürün başarıyla güncellendi!" 
       });
       
-      // Formu temizle
-      setName("");
-      setPrice("");
-      setCategory(categories[0]);
-      setDescription("");
-      setImageUrls([]);
-      
-      // Ana sayfaya yönlendir
       navigate('/');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
@@ -127,17 +186,45 @@ const AddProduct = () => {
         variant: "destructive" 
       });
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-gray-700">Ürün bulunamadı</h2>
+        <Button onClick={() => navigate('/')} className="mt-4">
+          Ana Sayfaya Dön
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="bg-white/95 backdrop-blur-sm rounded-3xl shadow-2xl p-8 animate-fade-in">
-          <h1 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-            Yeni Ürün Ekle
-          </h1>
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="outline"
+              onClick={() => navigate(-1)}
+              className="rounded-full"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              Ürün Düzenle
+            </h1>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Ürün Bilgileri */}
@@ -193,13 +280,29 @@ const AddProduct = () => {
                   Stok Durumu
                 </label>
                 <select
-                  defaultValue="true"
+                  value={inStock.toString()}
+                  onChange={(e) => setInStock(e.target.value === "true")}
                   className="w-full border-2 border-gray-200 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all duration-300"
                 >
                   <option value="true">Stokta</option>
                   <option value="false">Stokta Yok</option>
                 </select>
               </div>
+            </div>
+
+            {/* Öne Çıkan Ürün */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={featured}
+                  onChange={(e) => setFeatured(e.target.checked)}
+                  className="w-4 h-4 text-primary"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Öne Çıkan Ürün
+                </span>
+              </label>
             </div>
 
             {/* Açıklama */}
@@ -216,7 +319,7 @@ const AddProduct = () => {
               />
             </div>
 
-            {/* Görsel Yükleme */}
+            {/* Görsel Yönetimi */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Ürün Görselleri
@@ -235,7 +338,7 @@ const AddProduct = () => {
                 <label htmlFor="image-upload" className="cursor-pointer">
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg font-medium text-gray-700 mb-2">
-                    {uploading ? "Yükleniyor..." : "Görselleri seçin veya sürükleyin"}
+                    {uploading ? "Yükleniyor..." : "Yeni görseller ekleyin"}
                   </p>
                   <p className="text-sm text-gray-500">
                     PNG, JPG, GIF (Maksimum 5MB)
@@ -243,10 +346,10 @@ const AddProduct = () => {
                 </label>
               </div>
 
-              {/* Yüklenen Görseller */}
+              {/* Mevcut Görseller */}
               {imageUrls.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="text-lg font-medium text-gray-700 mb-4">Yüklenen Görseller</h3>
+                  <h3 className="text-lg font-medium text-gray-700 mb-4">Mevcut Görseller</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {imageUrls.map((url, index) => (
                       <div key={index} className="relative group">
@@ -286,18 +389,18 @@ const AddProduct = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={loading || uploading}
+                disabled={saving || uploading}
                 className="flex-1 bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90 text-white shadow-xl transition-all duration-300 hover:scale-105 rounded-2xl py-4 font-semibold"
               >
-                {loading ? (
+                {saving ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Ekleniyor...
+                    Kaydediliyor...
                   </>
                 ) : (
                   <>
-                    <Plus className="w-5 h-5 mr-2" />
-                    Ürünü Ekle
+                    <Save className="w-5 h-5 mr-2" />
+                    Değişiklikleri Kaydet
                   </>
                 )}
               </Button>
@@ -309,4 +412,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct; 
+export default EditProduct; 
