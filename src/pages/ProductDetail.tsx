@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/components/CartContext";
 import { Loader2 } from "lucide-react";
+import img1 from "../assets/Urun1/1.jpg";
 
 interface Product {
   id: number;
@@ -30,6 +31,20 @@ const ProductDetail = () => {
         .select("id, name, price, description, in_stock")
         .eq("id", Number(id))
         .single();
+      if ((productError || !productData) && id === "1001") {
+        // Statik Ürün 1 fallback
+        setProduct({
+          id: 1001,
+          name: "Ürün 1 - Özel Tasarım Kupa",
+          price: 249.99,
+          description: "Bu kupa, yüksek kaliteli seramikten üretilmiştir ve özel tasarımıyla dikkat çeker. Sıcak ve soğuk içecekler için uygundur.",
+          in_stock: true,
+        });
+        setImages([img1]);
+        setSelectedImage(img1);
+        setLoading(false);
+        return;
+      }
       if (productError || !productData) {
         setLoading(false);
         return;

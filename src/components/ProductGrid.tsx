@@ -4,6 +4,7 @@ import ProductCard from "./ProductCard";
 import { Loader2 } from "lucide-react";
 import Cart from "./Cart";
 import { ShoppingCart } from "lucide-react";
+import img1 from "../assets/Urun1/1.jpg";
 
 const categories = [
   "Tümü",
@@ -44,7 +45,16 @@ const ProductGrid = () => {
           .order('created_at', { ascending: false })
           .limit(100);
         if (error) throw error;
-        setProducts(data || []);
+        // Statik Ürün 1'i ekle
+        const urun1 = {
+          id: 1001,
+          name: "Ürün 1 - Özel Tasarım Kupa",
+          price: 249.99,
+          image_path: img1,
+          in_stock: true,
+          category: "Parti Süsleri",
+        };
+        setProducts([...(data || []), urun1]);
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
